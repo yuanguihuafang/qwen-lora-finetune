@@ -199,3 +199,6 @@ SwanLab 训练可视化：https://swanlab.cn/@用户名/LLaMA-Factory
 不具备参考价值，数据自己随意写的，拿训练好的数据又重复训练好几次，过拟合。  
 ![loss.png](images/loss.png)
 ![swanlab.png](images/swanlab.png)
+
+## 学习文档
+- [FineTune-Guide.html](FineTune-Guide.html)
