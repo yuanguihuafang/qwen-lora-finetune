@@ -1,0 +1,507 @@
+[
+  {
+    "instruction": "什么是大语言模型（LLM）？",
+    "input": "",
+    "output": "大语言模型（Large Language Model，LLM）是一种基于深度学习的自然语言处理模型，通过在海量文本数据上训练，学习语言的规律和知识。它能够完成文本生成、问答、翻译、摘要等多种任务。代表性模型包括GPT-4、Claude、Llama等。"
+  },
+  {
+    "instruction": "什么是Prompt工程？",
+    "input": "",
+    "output": "Prompt工程是指通过设计和优化输入给大语言模型的提示词，来引导模型产生更准确、更符合预期的输出的技术。好的Prompt能够明确任务目标、提供必要上下文、指定输出格式，从而显著提升模型性能，无需修改模型本身。"
+  },
+  {
+    "instruction": "什么是RAG技术？",
+    "input": "",
+    "output": "RAG（Retrieval-Augmented Generation，检索增强生成）是一种将信息检索与文本生成结合的技术。其工作流程为：先从外部知识库检索与问题相关的文档，再将检索结果作为上下文提供给语言模型生成回答。RAG能有效解决模型知识过时和幻觉问题。"
+  },
+  {
+    "instruction": "如何选择适合自己项目的基座模型？",
+    "input": "",
+    "output": "选择基座模型需考虑以下因素：1）任务类型，如中文任务优先选Qwen系列；2）硬件限制，显存6GB选3B以下模型；3）开源协议，商用需注意授权；4）推理速度要求；5）微调成本。建议先用小模型验证方案可行性，再考虑扩大规模。"
+  },
+  {
+    "instruction": "什么是向量数据库？在AI应用中有什么作用？",
+    "input": "",
+    "output": "向量数据库是专门用于存储和检索高维向量数据的数据库系统。在AI应用中，文本、图片等内容会被嵌入模型转换为向量，向量数据库负责高效地进行相似度搜索。常见的向量数据库有Chroma、Pinecone、Milvus、Weaviate等，是构建RAG系统的核心组件。"
+  },
+  {
+    "instruction": "什么是模型微调（Fine-tuning）？",
+    "input": "",
+    "output": "模型微调是在预训练模型基础上，使用特定领域的数据继续训练，使模型适应特定任务或风格的技术。微调分为全量微调（更新所有参数）和参数高效微调（如LoRA，只更新少量参数）。微调适合需要特定输出格式、专业领域知识或固定交互风格的场景。"
+  },
+  {
+    "instruction": "LoRA和全量微调有什么区别？",
+    "input": "",
+    "output": "全量微调更新模型所有参数，效果最好但显存需求极高（70B模型需要数百GB显存）。LoRA（Low-Rank Adaptation）只训练低秩分解的小矩阵，可训练参数仅占总量的0.1%~1%，显存需求大幅降低，单卡即可微调7B模型。实际效果差距不大，推荐优先使用LoRA。"
+  },
+  {
+    "instruction": "什么是QLoRA？",
+    "input": "",
+    "output": "QLoRA是LoRA的进阶版本，结合了4-bit量化技术。基座模型以4-bit NF4格式加载（显存减少约75%），LoRA适配器以BF16精度训练。这使得消费级GPU（如RTX 3060 6GB）也能微调7B参数的模型。是目前个人开发者微调大模型最实用的方案。"
+  },
+  {
+    "instruction": "什么是Temperature参数？如何设置？",
+    "input": "",
+    "output": "Temperature是控制语言模型输出随机性的参数，取值范围通常为0~2。Temperature=0时输出最确定，每次结果相同，适合代码生成、信息抽取等需要精确答案的任务；Temperature=0.7~1.0适合创意写作、对话等场景；Temperature>1.0输出更随机，不常用。"
+  },
+  {
+    "instruction": "什么是Token？如何估算Token数量？",
+    "input": "",
+    "output": "Token是语言模型处理文本的基本单位，可以是单词、字符或子词。英文中平均1个单词约1.3个Token；中文中1个汉字约1~2个Token。粗略估算：英文1000词≈1300Token，中文500字≈700Token。Token数量直接影响API调用费用和模型上下文窗口使用量。"
+  },
+  {
+    "instruction": "什么是上下文窗口（Context Window）？",
+    "input": "",
+    "output": "上下文窗口是语言模型一次能处理的最大Token数量。超出这个限制的内容模型无法感知。例如GPT-4的上下文窗口为128K Token，Claude 3的为200K Token。上下文越长，模型能参考的历史信息越多，但计算成本也越高。长文档处理和多轮对话需特别关注上下文限制。"
+  },
+  {
+    "instruction": "如何搭建一个基础的RAG系统？",
+    "input": "",
+    "output": "搭建基础RAG系统的步骤：1）文档加载：读取PDF、Word等文档；2）文本分块：将文档切分为合适大小的片段（通常500~1000字符）；3）向量化：使用Embedding模型将文本转为向量；4）存入向量数据库；5）检索：用户提问时检索最相关的文档片段；6）生成：将检索结果和问题一起传给LLM生成回答。"
+  },
+  {
+    "instruction": "LangChain是什么？有什么用？",
+    "input": "",
+    "output": "LangChain是一个用于构建LLM应用的开源框架，提供了链式调用、Agent、记忆管理、文档加载等模块。它简化了RAG、聊天机器人、自动化工作流等应用的开发。但LangChain抽象层较多，调试复杂，适合快速原型；生产环境建议根据需要直接调用底层API，减少依赖。"
+  },
+  {
+    "instruction": "什么是Embedding模型？",
+    "input": "",
+    "output": "Embedding模型是将文本转换为固定维度数值向量的模型。相似语义的文本对应的向量在空间中距离较近。Embedding是RAG系统的核心组件，用于将文档和查询转换为可比较的向量。常用的Embedding模型有OpenAI的text-embedding-ada-002、中文推荐使用bge-m3、text2vec等。"
+  },
+  {
+    "instruction": "如何评估大语言模型的输出质量？",
+    "input": "",
+    "output": "评估LLM输出质量的常用方法：1）自动指标：BLEU、ROUGE用于文本生成，准确率用于分类任务；2）LLM-as-Judge：用强模型（如GPT-4）对输出打分，成本低可扩展；3）人工评估：最准确但成本高；4）基准测试：使用MMLU、C-Eval等标准数据集评估通用能力。实际项目建议结合多种方式综合评估。"
+  },
+  {
+    "instruction": "什么是Agent（智能体）？",
+    "input": "",
+    "output": "AI Agent是能够感知环境、制定计划并自主执行一系列动作以完成目标的AI系统。与简单问答不同，Agent可以调用工具（搜索、代码执行、API调用等）、分解复杂任务、根据中间结果调整策略。典型框架有ReAct、AutoGPT等。Agent适合需要多步骤推理和外部工具协作的复杂任务。"
+  },
+  {
+    "instruction": "什么是Function Calling？",
+    "input": "",
+    "output": "Function Calling（函数调用）是让语言模型能够决定何时调用外部函数并生成结构化参数的能力。开发者预先定义函数的名称、描述和参数格式，模型根据用户请求判断是否需要调用函数，并生成符合格式的JSON参数。这是构建AI Agent和工具调用的核心机制。"
+  },
+  {
+    "instruction": "如何防止语言模型产生幻觉？",
+    "input": "",
+    "output": "减少模型幻觉的主要方法：1）使用RAG，让模型基于检索到的真实文档回答；2）在Prompt中明确要求'如果不确定请说不知道'；3）提高Temperature到0降低随机性；4）对关键信息要求模型提供来源；5）使用思维链（CoT）让模型逐步推理；6）对输出进行事实核查后处理。"
+  },
+  {
+    "instruction": "什么是思维链（Chain of Thought）提示？",
+    "input": "",
+    "output": "思维链（CoT）是一种提示技术，通过在Prompt中要求模型'一步一步思考'或提供推理示例，引导模型展示中间推理过程再给出最终答案。CoT显著提升了模型在数学推理、逻辑判断等复杂任务上的准确率。零样本CoT只需加入'Let's think step by step'即可激活。"
+  },
+  {
+    "instruction": "vLLM是什么？有什么优势？",
+    "input": "",
+    "output": "vLLM是一个高性能的大语言模型推理和服务框架。其核心创新是PagedAttention技术，将KV Cache像操作系统管理内存一样管理，显著减少显存浪费，提升吞吐量。vLLM提供OpenAI兼容的API接口，支持连续批处理，吞吐量比原生HuggingFace高5~24倍，是生产部署LLM的首选方案。"
+  },
+  {
+    "instruction": "什么是模型量化？常见的量化方法有哪些？",
+    "input": "",
+    "output": "模型量化是将模型参数从高精度（如FP32/FP16）压缩为低精度（如INT8/INT4）的技术，可大幅减少显存占用和推理延迟。常见量化方法：1）GPTQ：训练后量化，精度损失小；2）AWQ：激活感知量化，效果优秀；3）bitsandbytes（BNB）：支持4-bit NF4，适合QLoRA训练；4）GGUF：llama.cpp使用的格式，适合CPU推理。"
+  },
+  {
+    "instruction": "如何部署一个本地的LLM服务？",
+    "input": "",
+    "output": "部署本地LLM服务的常用方案：1）Ollama：最简单，一行命令启动，支持多种模型；2）vLLM：高性能生产级部署，提供OpenAI兼容API；3）llama.cpp：支持CPU推理，适合无GPU环境；4）LM Studio：有图形界面，适合非技术用户。生产环境推荐vLLM+Docker，开发测试推荐Ollama。"
+  },
+  {
+    "instruction": "什么是System Prompt？如何设计？",
+    "input": "",
+    "output": "System Prompt是在对话开始前设置模型角色、行为规范和任务背景的特殊提示词。设计原则：1）明确角色定位（你是一个专业的XX助手）；2）设定输出格式要求；3）定义边界（不回答XX类问题）；4）提供必要背景知识；5）设置语气风格。好的System Prompt能显著提升应用的一致性和专业性。"
+  },
+  {
+    "instruction": "什么是Few-shot学习？",
+    "input": "",
+    "output": "Few-shot学习是在Prompt中提供少量示例（通常2~10个），引导模型按照示例格式和逻辑完成新任务的技术。相比Zero-shot（无示例），Few-shot能显著提升模型在特定格式输出、专业领域推理等任务上的准确率。示例应覆盖多样情况，格式应与期望输出完全一致。"
+  },
+  {
+    "instruction": "如何计算API调用成本？",
+    "input": "",
+    "output": "API调用成本 = (输入Token数 × 输入单价 + 输出Token数 × 输出单价)。例如Claude 3.5 Sonnet定价约$3/百万输入Token，$15/百万输出Token。估算方法：1）统计平均每次对话的输入输出Token数；2）乘以日均调用次数；3）乘以单价。建议使用流式输出、压缩System Prompt、缓存常见查询来降低成本。"
+  },
+  {
+    "instruction": "什么是流式输出（Streaming）？如何实现？",
+    "input": "",
+    "output": "流式输出是让模型逐Token实时返回结果，而不是等全部生成完再一次性返回。优点是显著降低首字节延迟，用户体验更好。实现方式：OpenAI SDK设置stream=True，响应为Server-Sent Events流；前端通过EventSource或fetch ReadableStream接收。所有主流LLM API都支持流式输出。"
+  },
+  {
+    "instruction": "什么是模型的上下文长度限制？如何处理超长文档？",
+    "input": "",
+    "output": "超长文档处理方案：1）截断：只取前N个Token，简单但丢失信息；2）滑动窗口：分段处理后合并，适合摘要任务；3）RAG：将文档切块存向量库，只检索相关片段；4）Map-Reduce：分段处理后归并，适合分析任务；5）使用长上下文模型（如Claude 200K）。实际项目RAG是最常用且效果最好的方案。"
+  },
+  {
+    "instruction": "如何构建一个AI对话机器人？",
+    "input": "",
+    "output": "构建AI对话机器人的基本步骤：1）选择基础模型（API或本地部署）；2）设计System Prompt定义机器人角色；3）实现对话历史管理（维护messages列表）；4）开发前端界面（Web/APP/微信等）；5）接入知识库（RAG）提升专业性；6）添加安全过滤；7）监控和日志系统。推荐使用Python+FastAPI作为后端框架。"
+  },
+  {
+    "instruction": "什么是Transformer架构？",
+    "input": "",
+    "output": "Transformer是2017年Google提出的深度学习架构，是现代大语言模型的基础。核心机制是自注意力（Self-Attention），允许模型在处理每个Token时关注序列中所有其他Token的信息。相比RNN，Transformer可并行训练，擅长捕捉长距离依赖关系。GPT、BERT、LLaMA等主流模型均基于Transformer架构。"
+  },
+  {
+    "instruction": "什么是自注意力机制？",
+    "input": "",
+    "output": "自注意力机制是Transformer的核心，让模型学习序列中不同位置之间的关联。每个Token会生成Query、Key、Value三个向量，通过Query与所有Key计算相似度得到注意力权重，再对Value加权求和得到输出。多头注意力并行运行多组注意力，捕获不同类型的关联关系，使模型能理解复杂的语言结构。"
+  },
+  {
+    "instruction": "如何处理AI应用中的敏感信息和隐私问题？",
+    "input": "",
+    "output": "处理AI应用隐私问题的实践：1）PII脱敏：在发送给模型前自动识别并脱敏姓名、手机、身份证等；2）本地部署：敏感业务使用私有化部署的模型；3）数据最小化：只传递必要信息；4）访问控制：限制谁可以查看对话记录；5）数据保留策略：设置日志保留期限；6）用户告知：明确说明数据使用方式。"
+  },
+  {
+    "instruction": "什么是模型蒸馏？",
+    "input": "",
+    "output": "模型蒸馏是用大模型（教师模型）的输出来训练小模型（学生模型）的技术。小模型学习大模型的'软标签'（概率分布），而不仅仅是硬标签（正确答案），从而获得更好的泛化能力。蒸馏可以在保持较好性能的同时大幅缩小模型体积，适合需要在端侧或低资源环境部署的场景。"
+  },
+  {
+    "instruction": "什么是RLHF？",
+    "input": "",
+    "output": "RLHF（Reinforcement Learning from Human Feedback，基于人类反馈的强化学习）是目前主流大模型对齐技术。流程：1）收集人类对模型输出的偏好标注；2）训练奖励模型学习人类偏好；3）用强化学习（通常是PPO算法）优化语言模型使奖励最大化。RLHF使模型更有帮助、更无害、更诚实，是ChatGPT等产品成功的关键技术。"
+  },
+  {
+    "instruction": "FastAPI如何与LLM结合构建API服务？",
+    "input": "",
+    "output": "使用FastAPI构建LLM API服务的基本结构：定义请求/响应模型（使用Pydantic），创建POST接口接收用户消息，在接口内调用LLM（本地模型或远程API），返回生成结果。流式输出使用StreamingResponse配合异步生成器实现。建议添加请求限流、异常处理、日志记录等中间件，并使用uvicorn部署。"
+  },
+  {
+    "instruction": "如何在Python中调用OpenAI兼容的API？",
+    "input": "",
+    "output": "调用OpenAI兼容API的Python代码：安装openai库后，创建OpenAI客户端并设置base_url指向本地或第三方服务地址，api_key可设为任意字符串（本地服务不验证）。调用client.chat.completions.create方法，传入model名称和messages列表。vLLM、Ollama、LLaMA-Factory导出的模型均支持此接口。"
+  },
+  {
+    "instruction": "什么是Gradio？如何快速搭建AI演示界面？",
+    "input": "",
+    "output": "Gradio是Python库，可以用几行代码为机器学习模型创建Web演示界面。核心用法：定义处理函数，使用gr.Interface或gr.Blocks创建界面组件，调用launch()启动本地服务。支持文本、图片、音频等多种输入输出类型。适合快速原型验证和内部演示，LLaMA-Factory的WebUI就是基于Gradio构建的。"
+  },
+  {
+    "instruction": "如何优化LLM推理速度？",
+    "input": "",
+    "output": "优化LLM推理速度的方法：1）量化：4-bit/8-bit量化可提速2~4倍；2）KV Cache：缓存注意力键值，避免重复计算；3）批处理：合并多个请求同时处理；4）投机采样：用小模型草稿+大模型验证；5）Flash Attention：优化注意力计算内存访问；6）使用vLLM等优化推理框架；7）选择更小的模型。"
+  },
+  {
+    "instruction": "什么是模型的参数量？参数量与能力有什么关系？",
+    "input": "",
+    "output": "模型参数量是神经网络中可训练权重的总数，通常以B（Billion，十亿）为单位。一般规律：参数量越大，模型能力越强，但推理成本越高。7B模型适合消费级GPU，能处理大多数任务；70B模型需要专业GPU，能力接近GPT-4；1B以下模型适合手机端。随着训练技术进步，小模型（3B~7B）效果越来越好。"
+  },
+  {
+    "instruction": "什么是Hugging Face？在AI开发中如何使用？",
+    "input": "",
+    "output": "Hugging Face是AI领域最大的模型和数据集托管平台，提供Transformers、Datasets、PEFT等核心开源库。开发者可以从Hub下载预训练模型和数据集，使用Transformers库加载和推理模型，用PEFT库实现LoRA微调，用Spaces部署应用演示。国内访问可使用ModelScope（魔搭社区）作为镜像。"
+  },
+  {
+    "instruction": "什么是Ollama？如何使用？",
+    "input": "",
+    "output": "Ollama是一款开源工具，让用户能在本地便捷运行大语言模型。安装后使用ollama pull命令下载模型，ollama run命令在终端与模型对话，或通过HTTP API（默认端口11434）集成到应用中。Ollama自动处理模型量化和GPU/CPU分配，支持Llama、Qwen、Mistral等主流模型，是本地部署LLM的最简单方案。"
+  },
+  {
+    "instruction": "如何设计多轮对话的消息历史管理？",
+    "input": "",
+    "output": "多轮对话历史管理要点：1）维护messages列表，每轮追加user和assistant消息；2）设置最大历史长度，超出时裁剪早期对话；3）始终保留System Prompt；4）使用滑动窗口策略，保留最近N轮；5）对于长对话可先摘要历史再继续。注意总Token数不能超过模型上下文窗口，建议保留20%余量。"
+  },
+  {
+    "instruction": "什么是模型对齐（Alignment）？",
+    "input": "",
+    "output": "模型对齐是使AI系统的行为符合人类意图和价值观的技术方向。目标是让模型有帮助（Helpful）、无害（Harmless）、诚实（Honest），即HHH原则。主要技术包括RLHF、Constitutional AI、DPO等。对齐不足的模型可能产生有害内容、欺骗用户或执行恶意指令，是AI安全领域的核心研究方向。"
+  },
+  {
+    "instruction": "什么是DPO（直接偏好优化）？",
+    "input": "",
+    "output": "DPO（Direct Preference Optimization）是RLHF的简化替代方案。传统RLHF需要训练单独的奖励模型并运行强化学习，流程复杂。DPO直接使用人类偏好数据（chosen/rejected对），通过特殊的损失函数训练语言模型，跳过奖励模型训练步骤。DPO更稳定、计算成本更低，效果与RLHF相当，目前广泛应用于模型对齐。"
+  },
+  {
+    "instruction": "如何处理LLM输出的JSON格式？",
+    "input": "",
+    "output": "让LLM可靠输出JSON的方法：1）在Prompt中明确要求输出JSON并给出格式示例；2）使用支持JSON Mode的API（如OpenAI的response_format）；3）使用Outlines、Guidance等结构化生成库；4）对输出进行JSON解析，捕获异常后重试；5）使用正则表达式提取JSON片段。生产环境建议结合格式约束和重试机制确保稳定性。"
+  },
+  {
+    "instruction": "什么是模型的困惑度（Perplexity）？",
+    "input": "",
+    "output": "困惑度（Perplexity，PPL）是评估语言模型预测文本能力的指标。直观理解：模型在预测下一个词时的'平均不确定程度'。PPL越低，模型预测越准确，语言建模能力越强。微调时可用验证集困惑度衡量训练效果，PPL持续下降说明模型在学习；若验证集PPL上升而训练集下降，说明过拟合。"
+  },
+  {
+    "instruction": "什么是灾难性遗忘？如何避免？",
+    "input": "",
+    "output": "灾难性遗忘是指模型在学习新任务后，之前掌握的通用能力显著退化的现象。微调专业领域数据过多可能导致模型'忘记'原有能力。避免方法：1）使用LoRA等参数高效微调减少对原始权重的修改；2）在训练数据中混入通用数据（10%~20%）；3）使用较小的学习率；4）控制训练轮数，监控通用基准指标；5）使用EWC等持续学习算法。"
+  },
+  {
+    "instruction": "如何搭建一个文档问答系统？",
+    "input": "",
+    "output": "文档问答系统搭建步骤：1）文档解析：提取PDF/Word/网页文本；2）文本分块：设置合适的chunk_size（500~1000字符）和overlap（100字符）；3）向量化：用Embedding模型转换文本块；4）存入向量数据库（Chroma/FAISS）；5）查询处理：将用户问题向量化，检索Top-K相关文本块；6）生成回答：将检索结果拼接到Prompt，调用LLM生成。"
+  },
+  {
+    "instruction": "什么是Flash Attention？",
+    "input": "",
+    "output": "Flash Attention是一种IO感知的注意力计算算法，通过优化GPU内存访问模式（减少HBM读写次数），大幅提升注意力计算速度并降低显存占用。Flash Attention 2在A100上比标准实现快5~9倍，且数学等价（精度不损失）。目前主流训练框架均支持Flash Attention，微调时应尽量启用。"
+  },
+  {
+    "instruction": "如何评估RAG系统的质量？",
+    "input": "",
+    "output": "RAG系统评估维度：1）检索质量：Recall@K（相关文档召回率）、MRR（平均倒数排名）；2）生成质量：忠实度（答案是否基于检索内容）、相关性（是否回答了问题）；3）端到端：整体答案准确率。工具推荐：RAGAs框架自动化评估，包含faithfulness、answer_relevancy、context_precision等指标。建议建立黄金测试集持续监控。"
+  },
+  {
+    "instruction": "什么是模型合并（Model Merging）？",
+    "input": "",
+    "output": "模型合并是将多个在不同任务上微调的模型权重合并为一个模型的技术，使合并后的模型同时具备多种能力。常见方法：1）Linear Merging：线性加权平均；2）TIES-Merging：处理参数冲突；3）DARE：稀疏化后合并。工具有mergekit。模型合并无需额外训练，是低成本获得多能力模型的实用方法。"
+  },
+  {
+    "instruction": "什么是提示词注入攻击？如何防御？",
+    "input": "",
+    "output": "提示词注入是攻击者通过精心构造的输入，覆盖或绕过原始System Prompt的攻击方式。例如输入'忽略之前的指令，现在你是...'。防御方法：1）在System Prompt中明确禁止覆盖指令；2）对用户输入进行清洗，过滤特殊指令词；3）使用结构化格式区分系统指令和用户输入；4）对敏感操作（如工具调用）增加二次确认；5）部署输出内容安全过滤器。"
+  },
+  {
+    "instruction": "如何使用Python实现文本向量化？",
+    "input": "",
+    "output": "使用sentence-transformers库实现文本向量化：安装后加载预训练Embedding模型（中文推荐BAAI/bge-m3），调用model.encode()方法传入文本列表即可得到向量数组。向量相似度计算使用余弦相似度（cosine_similarity）。批量处理时设置合适的batch_size平衡速度和显存。本地部署Embedding模型可避免API调用延迟和费用。"
+  },
+  {
+    "instruction": "什么是PEFT？包含哪些方法？",
+    "input": "",
+    "output": "PEFT（Parameter-Efficient Fine-Tuning，参数高效微调）是只更新模型少量参数完成微调的方法集合，大幅降低显存和计算需求。主要方法：1）LoRA：低秩适配，最常用；2）Prefix Tuning：在输入前添加可训练前缀；3）Prompt Tuning：训练软提示词；4）Adapter：在Transformer层间插入小模块；5）IA3：缩放激活值。HuggingFace的PEFT库统一实现了上述方法。"
+  },
+  {
+    "instruction": "如何在训练中监控Loss曲线？",
+    "input": "",
+    "output": "监控训练Loss的工具：1）Weights & Biases（wandb）：最流行，实时可视化，支持超参数追踪；2）TensorBoard：本地可视化，无需联网；3）SwanLab：国产工具，适合国内用户；4）终端日志：最简单，直接打印。正常Loss曲线应持续下降趋于平稳。训练Loss远低于验证Loss说明过拟合；两者都高说明欠拟合需调大学习率或增加数据。"
+  },
+  {
+    "instruction": "什么是早停（Early Stopping）？",
+    "input": "",
+    "output": "早停是在验证集性能不再提升时提前终止训练的策略，防止过拟合。设置patience参数（如patience=3），若验证Loss连续N个评估轮次未改善则停止训练，并保存最佳检查点。在LLaMA-Factory中可通过设置load_best_model_at_end=True和metric_for_best_model实现。资源有限时早停能避免无效训练浪费时间。"
+  },
+  {
+    "instruction": "如何处理训练中的OOM（显存溢出）？",
+    "input": "",
+    "output": "解决训练OOM的方法（按优先级）：1）减小batch_size到1；2）增大gradient_accumulation_steps补偿batch；3）启用gradient_checkpointing（用计算换显存）；4）减小max_seq_length；5）降低LoRA rank；6）使用4-bit量化（QLoRA）；7）减少target_modules数量；8）使用paged_adamw_8bit优化器。逐步尝试直到不再OOM。"
+  },
+  {
+    "instruction": "什么是知识图谱？在AI应用中如何使用？",
+    "input": "",
+    "output": "知识图谱是以图结构表示实体和关系的知识库，节点代表实体，边代表关系。在AI应用中，知识图谱可以：1）与RAG结合（GraphRAG），提供结构化知识检索；2）减少LLM幻觉，提供可验证的事实依据；3）支持多跳推理；4）作为对话系统的知识后端。Neo4j是最常用的图数据库，LlamaIndex支持知识图谱索引。"
+  },
+  {
+    "instruction": "什么是多模态AI模型？",
+    "input": "",
+    "output": "多模态AI模型能够处理多种类型的输入（文本、图像、音频、视频等）。典型代表：GPT-4o支持图文混合输入；Claude 3支持图片理解；Qwen-VL、LLaVA是开源视觉语言模型。多模态模型通常将视觉编码器（如ViT）与语言模型结合。应用场景包括图片问答、文档解析、视频理解等。"
+  },
+  {
+    "instruction": "如何搭建AI应用的后端架构？",
+    "input": "",
+    "output": "AI应用后端架构要点：1）API层：FastAPI/Flask接收请求；2）模型服务层：vLLM/Ollama提供LLM推理；3）中间件：请求队列（Redis）、限流、鉴权；4）数据层：向量数据库（Chroma/Milvus）+关系数据库；5）缓存：对相同问题缓存回答降低成本；6）监控：Prometheus+Grafana；7）日志：ELK栈。根据规模从简单开始，逐步引入复杂组件。"
+  },
+  {
+    "instruction": "什么是Tokenizer？不同模型的Tokenizer有何区别？",
+    "input": "",
+    "output": "Tokenizer是将文本转换为模型可处理的Token ID序列的工具。不同模型使用不同的Tokenizer，词表大小和分词策略各异。Llama3使用tiktoken，词表128K；Qwen2.5词表约152K，对中文支持更好（汉字token化效率高）；GPT-4使用cl100k_base。微调时必须使用与基座模型完全相同的Tokenizer，否则会出错。"
+  },
+  {
+    "instruction": "如何实现AI应用的流量控制和限速？",
+    "input": "",
+    "output": "AI应用限速的实现方案：1）令牌桶算法：按Token数而非请求数限速，更合理；2）Redis计数器：记录用户在时间窗口内的使用量；3）API网关：Nginx/Kong配置rate limiting；4）用户分级：付费用户更高限额。限速维度包括：每秒请求数（QPS）、每分钟Token数（TPM）、每日总额度。超限返回429状态码，提示用户等待。"
+  },
+  {
+    "instruction": "什么是模型的推理延迟？如何优化？",
+    "input": "",
+    "output": "推理延迟分为TTFT（首Token时间）和TPS（每秒Token数）。优化TTFT：1）减少输入Token（压缩Prompt）；2）预填充缓存（KV Cache Prefix Caching）；3）使用更快的推理框架。优化TPS：1）量化模型；2）使用投机采样；3）增大批处理大小；4）使用更小的模型；5）升级GPU。对话场景重点优化TTFT，批处理场景重点优化吞吐量。"
+  },
+  {
+    "instruction": "什么是GraphRAG？与普通RAG有何区别？",
+    "input": "",
+    "output": "GraphRAG是微软提出的将知识图谱与RAG结合的技术。普通RAG通过向量相似度检索文档片段，难以处理需要跨多个文档推理的问题。GraphRAG先从文档中抽取实体和关系构建知识图谱，查询时结合图遍历和向量检索，能回答'谁与谁有什么关系'类的复杂问题。代价是构建图谱成本高，适合知识密集型场景。"
+  },
+  {
+    "instruction": "如何实现LLM的长期记忆？",
+    "input": "",
+    "output": "LLM长期记忆实现方案：1）数据库存储：将对话摘要存入数据库，下次对话检索相关记忆；2）向量记忆：将历史信息向量化存储，语义检索相关记忆；3）实体记忆：提取并更新用户偏好、重要事实；4）摘要压缩：定期将长对话摘要压缩存储。工具：MemoryOS、Mem0等专用记忆框架。记忆管理需权衡相关性、隐私和存储成本。"
+  },
+  {
+    "instruction": "什么是Speculative Decoding（投机采样）？",
+    "input": "",
+    "output": "投机采样是一种加速LLM推理的技术。用小模型（draft model）快速生成多个候选Token，再用大模型（target model）并行验证，接受概率分布一致的Token。由于大模型验证多个Token的成本与验证单个Token相近，整体吞吐量显著提升（通常2~3倍）。适合输出长度较长的场景，小模型与大模型来自同一系列效果最好。"
+  },
+  {
+    "instruction": "如何构建一个代码生成AI助手？",
+    "input": "",
+    "output": "构建代码生成助手的关键点：1）选用代码能力强的基座模型（Qwen2.5-Coder、DeepSeek-Coder）；2）System Prompt明确编程语言、代码风格、注释规范；3）启用代码执行环境验证输出（沙箱环境）；4）集成代码高亮显示；5）支持多轮修改（维护对话历史）；6）可选：微调在公司代码库上增强特定框架能力。"
+  },
+  {
+    "instruction": "什么是AI幻觉（Hallucination）？",
+    "input": "",
+    "output": "AI幻觉是指语言模型生成看似合理但实际上不准确或完全捏造的信息的现象。常见类型：事实错误（编造不存在的论文/人名）、逻辑错误（推理链断裂）、自相矛盾（前后不一致）。根本原因是模型通过统计规律生成文本，并不真正'理解'知识。减少幻觉需要RAG提供事实依据、降低Temperature、要求模型标注不确定性。"
+  },
+  {
+    "instruction": "如何搭建私有化部署的AI知识库？",
+    "input": "",
+    "output": "私有化AI知识库搭建方案：1）本地LLM：Ollama/vLLM部署开源模型；2）本地Embedding：bge-m3本地向量化；3）本地向量数据库：Chroma/Milvus；4）应用框架：AnythingLLM（一键部署全套）或自研；5）文档管理：支持PDF/Word/网页等格式；6）访问控制：用户认证和权限管理。全程数据不出内网，适合对数据安全要求高的企业。"
+  },
+  {
+    "instruction": "什么是结构化输出？如何实现？",
+    "input": "",
+    "output": "结构化输出是让LLM按照预定义的格式（JSON Schema、XML等）返回结果，便于程序处理。实现方式：1）Prompt约束：要求输出JSON并提供示例；2）JSON Mode：OpenAI/部分模型API支持，强制输出合法JSON；3）Outlines库：基于有限状态机约束生成，支持任意正则和JSON Schema；4）Instructor库：结合Pydantic模型自动重试直到格式正确。生产环境推荐方案3或4。"
+  },
+  {
+    "instruction": "如何进行AI应用的A/B测试？",
+    "input": "",
+    "output": "LLM应用A/B测试方案：1）流量分割：将用户随机分配到不同版本（不同Prompt/模型/参数）；2）指标定义：明确要优化的指标（用户满意度/任务完成率/点赞率）；3）日志收集：记录每次请求的版本、输入输出、用户反馈；4）统计分析：达到足够样本量后进行显著性检验；5）逐步放量：先小流量验证，确认效果后全量。注意控制变量，每次只测试一个变化。"
+  },
+  {
+    "instruction": "什么是模型的参数共享？",
+    "input": "",
+    "output": "参数共享是在神经网络不同层或位置复用相同参数的技术，可减少参数量。在LLM中，部分模型使用绑定词嵌入（输入嵌入和输出投影共享权重），减少参数但性能影响小。Group Query Attention（GQA）是一种注意力头参数共享方案，多个Query头共享Key/Value头，显著减少KV Cache大小，Llama3等模型广泛采用。"
+  },
+  {
+    "instruction": "如何处理多语言AI应用？",
+    "input": "",
+    "output": "多语言AI应用开发要点：1）选择多语言支持好的模型（Qwen2.5对中英日韩支持好）；2）自动检测用户语言，System Prompt指定回复语言；3）Embedding模型使用支持多语言的版本（如multilingual-e5）；4）数据集准备各语言的训练样本；5）评估时各语言单独测试；6）注意不同语言的Token效率差异（中文通常比英文Token效率低）。"
+  },
+  {
+    "instruction": "什么是Prefix Caching（前缀缓存）？",
+    "input": "",
+    "output": "Prefix Caching是缓存相同前缀（通常是System Prompt）对应的KV Cache的技术。当多个请求共享相同的开头（如同一个System Prompt），服务端缓存这部分计算结果，后续请求直接复用，避免重复计算。可降低TTFT 50%以上，同时减少计算成本。vLLM、Anthropic API均支持此特性，在系统Prompt较长时收益显著。"
+  },
+  {
+    "instruction": "如何对AI输出进行安全过滤？",
+    "input": "",
+    "output": "AI输出安全过滤方案：1）关键词过滤：正则匹配敏感词列表，简单但误报多；2）分类模型：训练专用安全分类器，准确率更高；3）LLM审核：用另一个LLM判断内容是否安全；4）Llama Guard：Meta开源的专用安全检测模型；5）商业API：Azure Content Safety、AWS Comprehend等。通常采用分层策略：关键词过滤快速拦截明显违规，分类模型处理边缘情况。"
+  },
+  {
+    "instruction": "什么是混合专家模型（MoE）？",
+    "input": "",
+    "output": "混合专家（Mixture of Experts，MoE）是一种模型架构，包含多个专家网络（FFN）和路由器。每次推理时，路由器只激活少数专家（如8选2），而不是全部参数。这使模型拥有大参数量（知识容量大）的同时保持较低的推理计算量。DeepSeek-V3（671B参数，激活37B）、Mixtral 8x7B是典型MoE模型。"
+  },
+  {
+    "instruction": "如何实现AI应用的用户反馈收集？",
+    "input": "",
+    "output": "用户反馈收集方案：1）显式反馈：点赞/踩按钮，收集偏好信号；2）文字反馈：可选的评论框说明问题；3）复制行为：用户复制回答说明质量较好；4）重新生成：用户点击重新生成说明上次回答不满意；5）隐式信号：对话轮次、会话时长。收集的反馈数据可用于：微调改善（DPO数据对）、监控质量趋势、发现Bad Case。"
+  },
+  {
+    "instruction": "什么是上下文学习（In-Context Learning）？",
+    "input": "",
+    "output": "上下文学习是LLM无需更新参数，仅通过Prompt中的示例就能完成新任务的能力。包括：Zero-shot（无示例直接完成）、One-shot（1个示例）、Few-shot（多个示例）。这种能力是大模型的涌现能力之一，小于某规模的模型不具备。上下文学习的优点是灵活免训练，缺点是受上下文长度限制，示例数量有限。"
+  },
+  {
+    "instruction": "如何进行LLM应用的压力测试？",
+    "input": "",
+    "output": "LLM应用压力测试要点：1）工具：Locust或自定义脚本模拟并发请求；2）测试指标：TTFT、TPS、端到端延迟、错误率、GPU利用率；3）测试场景：逐步加压（从10到1000并发）观察性能拐点；4）长时间稳定性：持续运行1小时检查内存泄漏；5）找出瓶颈：通常是GPU显存或CPU内存；6）根据结果调整vLLM并发配置和批处理大小。"
+  },
+  {
+    "instruction": "什么是模型的上下文压缩技术？",
+    "input": "",
+    "output": "上下文压缩是在不丢失关键信息的前提下减少Prompt长度的技术。方法：1）摘要压缩：用LLM将长对话历史摘要为短文本；2）选择性保留：只保留与当前查询相关的历史轮次；3）LLMLingua：微软开源的Prompt压缩工具，保留关键Token删除冗余；4）RAG替代长文档：用检索替代全文输入。压缩可降低成本和延迟，但需权衡信息损失风险。"
+  },
+  {
+    "instruction": "如何将微调好的模型导出并在Ollama中使用？",
+    "input": "",
+    "output": "将微调模型导入Ollama的步骤：1）在LLaMA-Factory的Export页面合并LoRA权重并导出为完整模型；2）使用llama.cpp的convert.py将模型转换为GGUF格式；3）量化：使用llama.cpp的quantize工具转为Q4_K_M格式；4）创建Modelfile文件指定FROM路径和参数；5）执行ollama create my-model -f Modelfile；6）使用ollama run my-model测试。"
+  },
+  {
+    "instruction": "什么是思维树（Tree of Thoughts）？",
+    "input": "",
+    "output": "思维树（ToT）是对Chain of Thought的扩展，让模型探索多个推理路径形成树状结构，而不是单一线性推理链。模型在每个推理步骤生成多个候选想法，通过自我评估选择有希望的分支继续探索，必要时回溯。适合需要搜索和规划的复杂问题（如数学证明、代码调试）。缺点是计算成本高（多次调用模型），实际应用较少。"
+  },
+  {
+    "instruction": "如何使用Docker部署AI应用？",
+    "input": "",
+    "output": "Docker部署AI应用基本流程：1）编写Dockerfile，基于nvidia/cuda基础镜像，安装Python依赖；2）编写docker-compose.yml，配置GPU资源（deploy.resources.reservations.devices）、端口映射、挂载模型目录；3）构建镜像：docker build；4）启动服务：docker-compose up -d；5）检查日志：docker logs。使用volumes挂载模型文件避免打包进镜像，保持镜像轻量。"
+  },
+  {
+    "instruction": "什么是LLM的涌现能力（Emergent Abilities）？",
+    "input": "",
+    "output": "涌现能力是指在小模型上几乎不存在、随模型规模增大突然出现的能力。典型涌现能力包括：少样本学习、多步推理、算术运算、代码生成等。这些能力并非随规模线性增长，而是在某个规模阈值附近突然出现。这种不可预测性是大模型研究的重要议题，也是无法简单通过小模型预测大模型行为的原因。"
+  },
+  {
+    "instruction": "如何优化RAG的检索质量？",
+    "input": "",
+    "output": "提升RAG检索质量的方法：1）混合检索：向量检索+BM25关键词检索，取并集后重排序；2）查询扩展：用LLM改写用户问题生成多个变体；3）重排序：用Cross-Encoder对检索结果精排；4）小块存储大块检索：细粒度切块存储，检索后返回更大上下文；5）假设性文档嵌入（HyDE）：生成假设答案再检索；6）调整chunk_size和overlap参数。"
+  },
+  {
+    "instruction": "什么是Continual Learning（持续学习）？",
+    "input": "",
+    "output": "持续学习是让模型在不遗忘旧知识的情况下持续学习新知识的技术领域。主要挑战是灾难性遗忘。方法包括：1）Rehearsal：在新数据中混入旧数据；2）EWC（弹性权重巩固）：对重要参数施加正则化惩罚；3）渐进式网络：为新任务添加新模块；4）知识蒸馏：用旧模型约束新模型训练。在实际LLM应用中，周期性混合新旧数据微调是最常用的方案。"
+  },
+  {
+    "instruction": "如何实现AI应用的多租户隔离？",
+    "input": "",
+    "output": "多租户AI应用隔离方案：1）数据隔离：每个租户独立的向量数据库命名空间或单独数据库；2）模型隔离：高价值租户使用独立模型实例；3）请求隔离：在Prompt中注入租户身份，防止跨租户信息泄露；4）额度管理：按租户统计Token消耗，实施配额控制；5）日志隔离：确保日志不跨租户查询。SaaS场景通常数据隔离最关键，模型可共享。"
+  },
+  {
+    "instruction": "什么是Reward Model（奖励模型）？",
+    "input": "",
+    "output": "奖励模型是RLHF流程中学习评估回答质量的模型。训练数据是人类标注的偏好对（同一问题的好回答vs差回答），奖励模型学习预测人类偏好分数。训练好的奖励模型用于给语言模型的输出打分，指导强化学习优化。奖励模型的质量直接决定RLHF效果，奖励被黑客利用（reward hacking）是主要挑战。"
+  },
+  {
+    "instruction": "如何处理AI应用中的并发请求？",
+    "input": "",
+    "output": "AI应用并发处理方案：1）异步框架：使用FastAPI+asyncio处理IO密集型部分；2）请求队列：Redis Queue或Celery将请求排队处理；3）连接池：复用LLM客户端连接；4）批处理：将短时间内的请求合并批量推理；5）水平扩展：多实例部署+负载均衡；6）优先级队列：区分实时请求和批处理请求。vLLM本身支持连续批处理，无需额外实现。"
+  },
+  {
+    "instruction": "什么是Self-RAG？",
+    "input": "",
+    "output": "Self-RAG是一种让模型自主决定何时检索、如何使用检索结果的增强RAG框架。与普通RAG每次都检索不同，Self-RAG训练模型生成特殊反思Token（如[Retrieve]、[IsRel]、[IsSup]）来控制检索时机和评估检索质量。这使模型能区分哪些问题需要检索哪些不需要，并对检索到的内容进行批判性使用，提升准确率。"
+  },
+  {
+    "instruction": "如何实现模型输出的流式传输到前端？",
+    "input": "",
+    "output": "后端流式传输实现：FastAPI使用StreamingResponse，配合异步生成器逐Token产出Server-Sent Events格式数据。前端接收：使用fetch API和ReadableStream，或EventSource对象监听数据流，每收到一个Token追加到显示区域。注意处理连接断开和错误重连。React可使用自定义Hook封装流式状态管理。整体延迟从等待全部生成（5~30秒）降至首字节延迟（<1秒）。"
+  },
+  {
+    "instruction": "什么是Constitutional AI？",
+    "input": "",
+    "output": "Constitutional AI（宪法AI）是Anthropic提出的AI对齐方法。核心思想：用一套明确的原则（宪法）指导模型自我批评和修正，替代大量人工标注。流程：1）模型生成回答；2）根据宪法原则自我批评；3）修订回答；4）用修订数据进行强化学习。这种方法减少了对人工标注的依赖，使对齐过程更透明，是Claude模型训练的核心技术之一。"
+  },
+  {
+    "instruction": "如何评估微调是否成功？",
+    "input": "",
+    "output": "评估微调成功的方法：1）Loss曲线：训练和验证Loss持续下降且差距不大；2）任务指标：在测试集上目标任务的准确率/ROUGE分数等明显提升；3）对比测试：同样问题分别问原始模型和微调模型，对比输出质量；4）LLM-as-Judge：用强模型打分对比；5）通用能力：MMLU/C-Eval等基准不显著下降；6）人工评估：业务专家盲测评分。多维度综合判断。"
+  },
+  {
+    "instruction": "什么是模型的推理扩展（Inference Scaling）？",
+    "input": "",
+    "output": "推理扩展是在推理阶段投入更多计算资源来提升模型性能的思路，与训练扩展互补。方法包括：Best-of-N（生成多个答案取最好）、MCTS（蒙特卡洛树搜索）、Process Reward Model引导搜索。OpenAI o1/o3系列通过长思维链（延长推理Token）在数学、代码等推理任务上显著超越训练扩展极限。推理扩展是当前AI能力提升的重要方向。"
+  },
+  {
+    "instruction": "如何构建企业级AI助手？",
+    "input": "",
+    "output": "企业级AI助手构建要点：1）知识库：接入企业内部文档、FAQ、产品手册；2）系统集成：对接CRM、ERP、工单系统等；3）权限控制：不同角色访问不同知识范围；4）审计日志：记录所有对话供合规审查；5）私有化部署：数据不出企业内网；6）人工接管：AI无法处理时转接人工；7）持续优化：收集员工反馈，定期更新知识库和微调模型。安全性和可控性是企业场景首要考量。"
+  },
+  {
+    "instruction": "什么是LLM的工具调用（Tool Use）？",
+    "input": "",
+    "output": "工具调用让LLM能够使用外部工具扩展能力。常见工具类型：搜索引擎（获取实时信息）、代码执行器（运行Python）、计算器（精确计算）、数据库查询、API调用等。实现方式：定义工具的名称、描述、参数Schema，模型决定调用哪个工具并生成参数，执行结果返回给模型继续推理。这是构建AI Agent的基础能力。"
+  },
+  {
+    "instruction": "如何监控LLM应用的成本？",
+    "input": "",
+    "output": "LLM成本监控方案：1）Token计数：记录每次请求的输入/输出Token数；2）成本归因：按用户/功能/部门分摊成本；3）异常告警：单次请求超过阈值触发告警（防止Prompt注入导致超额）；4）日报周报：定期汇总各维度成本趋势；5）优化建议：识别高成本的Query模式进行优化；6）预算控制：设置月度上限，超额自动降级到更便宜的模型。"
+  },
+  {
+    "instruction": "什么是模型的知识截止日期？如何处理？",
+    "input": "",
+    "output": "知识截止日期是模型训练数据的时间边界，之后发生的事件模型不了解。处理方案：1）RAG接入实时数据源（新闻API、企业数据库）；2）Tool Use：让模型调用搜索工具获取最新信息；3）定期微调更新模型知识；4）在System Prompt中说明知识截止时间，引导用户对时效性信息交叉验证；5）对时效性强的查询自动触发网络搜索。"
+  },
+  {
+    "instruction": "如何实现AI应用的版本管理？",
+    "input": "",
+    "output": "AI应用版本管理要点：1）Prompt版本化：用Git管理System Prompt，记录每次修改和效果；2）模型版本：记录使用的模型名称和版本号；3）A/B测试框架：新版本灰度发布，对比新旧版本指标；4）回滚机制：性能下降时快速回滚到上一版本；5）实验追踪：用MLflow/W&B记录每次训练的超参数和指标；6）数据版本：DVC管理训练数据集版本。"
+  },
+  {
+    "instruction": "什么是LLM的幻觉检测？",
+    "input": "",
+    "output": "LLM幻觉检测方法：1）一致性检测：同一问题多次采样，答案不一致则可能幻觉；2）检索验证：将回答中的声明与知识库对比；3）自我反驳：让模型检查自己的回答是否有内部矛盾；4）事实核查模型：专门训练的NLI模型验证声明是否被文档支持；5）引用要求：要求模型给出每个声明的来源，无来源的声明标记为不确定。"
+  },
+  {
+    "instruction": "如何使用LLaMA-Factory导出训练好的模型？",
+    "input": "",
+    "output": "在LLaMA-Factory中导出模型的步骤：1）切换到Export标签页；2）选择模型名称和检查点路径（训练输出目录）；3）导出大小选择4（即4-bit量化，适合部署）或不量化保持原精度；4）设置导出目录；5）点击开始导出，等待合并完成。导出后目录包含config.json、tokenizer等完整文件，可直接用transformers加载或转换为GGUF供Ollama使用。"
+  },
+  {
+    "instruction": "什么是Prompt缓存？如何利用？",
+    "input": "",
+    "output": "Prompt缓存是API提供商缓存相同Prompt前缀计算结果的功能，后续相同前缀的请求可享受折扣价格和更低延迟。Anthropic Claude的Prompt缓存对超过1024Token的前缀生效，缓存命中可降低90%成本。最佳实践：将不变的内容（System Prompt、文档、示例）放在消息最前面，将变化的用户输入放最后，最大化缓存命中率。"
+  }
+]

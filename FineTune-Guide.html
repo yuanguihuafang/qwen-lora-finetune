@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微调 · 实践 · 部署 完整行动指南</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --paper2: #ece6d5;
+    --red: #c0392b;
+    --red-pale: #f0d9d6;
+    --gold: #b8860b;
+    --gold-pale: #f5e8c0;
+    --green: #1a6b3c;
+    --green-pale: #d6edd9;
+    --blue: #1a3d6b;
+    --blue-pale: #d6e4f0;
+    --gray: #8a8070;
+    --rule: #c8b89a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 60px 48px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 39px,
+      rgba(255,255,255,.04) 39px,
+      rgba(255,255,255,.04) 40px
+    );
+    pointer-events: none;
+  }
+  .header-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    max-width: 820px;
+  }
+  header h1 span {
+    color: var(--gold);
+  }
+  .header-sub {
+    margin-top: 20px;
+    font-size: 15px;
+    color: rgba(245,240,232,.6);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-red   { background: var(--red);   color: #fff; }
+  .badge-gold  { background: var(--gold);  color: #fff; }
+  .badge-green { background: var(--green); color: #fff; }
+
+  /* ── NAV BAR ── */
+  nav {
+    background: var(--paper2);
+    border-bottom: 2px solid var(--ink);
+    padding: 0 48px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    color: var(--gray);
+    padding: 16px 20px;
+    border-right: 1px solid var(--rule);
+    white-space: nowrap;
+    transition: color .2s, background .2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  nav a:hover { color: var(--ink); background: var(--paper); }
+  nav a .num {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 2px;
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 72px 0 0;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gray);
+    white-space: nowrap;
+  }
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .section-accent {
+    margin-left: auto;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── STEP CARDS ── */
+  .steps {
+    display: grid;
+    gap: 0;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    border: 1.5px solid var(--rule);
+    border-bottom: none;
+    background: #fff;
+    transition: background .2s;
+  }
+  .step:first-child { border-radius: 4px 4px 0 0; }
+  .step:last-child  { border-bottom: 1.5px solid var(--rule); border-radius: 0 0 4px 4px; }
+  .step:hover { background: var(--paper); }
+  .step-num {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 22px;
+    border-right: 1.5px solid var(--rule);
+  }
+  .step-body {
+    padding: 20px 28px;
+  }
+  .step-name {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+  .step-desc {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.75;
+  }
+  .step-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    color: var(--gray);
+    letter-spacing: .5px;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--ink);
+    color: #e8e0d0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .code-block-header {
+    background: rgba(255,255,255,.08);
+    padding: 10px 20px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .code-block-header .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold); opacity: .6;
+  }
+  .code-block pre {
+    padding: 20px 24px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .cm { color: #6b8a70; }
+  .ck { color: #c0b060; }
+  .cs { color: #80b0d0; }
+  .cv { color: #d0a060; }
+
+  /* ── INFO BOXES ── */
+  .infobox {
+    border-left: 4px solid;
+    padding: 18px 22px;
+    margin: 24px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  .infobox-warn  { border-color: var(--red);   background: var(--red-pale); }
+  .infobox-tip   { border-color: var(--green);  background: var(--green-pale); }
+  .infobox-info  { border-color: var(--blue);   background: var(--blue-pale); }
+  .infobox-gold  { border-color: var(--gold);   background: var(--gold-pale); }
+  .infobox-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .infobox-warn .infobox-label  { color: var(--red);   }
+  .infobox-tip  .infobox-label  { color: var(--green);  }
+  .infobox-info .infobox-label  { color: var(--blue);   }
+  .infobox-gold .infobox-label  { color: var(--gold);   }
+
+  /* ── TWO COL ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 24px 0;
+  }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 24px 0;
+    background: #fff;
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .data-table thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .data-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    text-align: left;
+  }
+  .data-table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:nth-child(even) { background: var(--paper); }
+
+  /* ── CHECKLIST ── */
+  .checklist {
+    list-style: none;
+    margin: 20px 0;
+    display: grid;
+    gap: 10px;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 14px;
+    line-height: 1.65;
+    background: #fff;
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    padding: 12px 18px;
+  }
+  .checklist li .chk {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--rule);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    background: var(--paper);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    color: transparent;
+  }
+  .checklist li.done .chk {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+  .checklist li.done span { text-decoration: line-through; color: var(--gray); }
+
+  /* ── PIPELINE VIZ ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .pipeline-stage {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+  }
+  .pipeline-stage::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--gray);
+    z-index: 1;
+  }
+  .pipeline-stage:last-child::after { display: none; }
+  .ps-box {
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    padding: 16px 10px;
+    background: #fff;
+    height: 100%;
+  }
+  .ps-icon { font-size: 28px; margin-bottom: 8px; }
+  .ps-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .ps-desc {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 40px 48px;
+    margin-top: 80px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer .fl { opacity: .5; }
+  footer .fr { color: var(--gold); letter-spacing: 2px; }
+
+  @media (max-width: 600px) {
+    header, main, footer, nav { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-kicker">完整行动指南 · COMPLETE ACTION GUIDE</div>
+  <h1>微调 <span>+</span> 动手实践 <span>+</span> 部署</h1>
+  <p class="header-sub">从零开始系统掌握大语言模型微调、本地实验到生产部署的完整工程路径，面向工程师的可执行手册。</p>
+  <div class="header-badges">
+    <span class="badge badge-red">微调 Fine-Tuning</span>
+    <span class="badge badge-gold">实践 Hands-On</span>
+    <span class="badge badge-green">部署 Deployment</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#phase1"><span class="num">01</span> 前期准备</a>
+  <a href="#phase2"><span class="num">02</span> 数据工程</a>
+  <a href="#phase3"><span class="num">03</span> 微调训练</a>
+  <a href="#phase4"><span class="num">04</span> 评估验证</a>
+  <a href="#phase5"><span class="num">05</span> 部署上线</a>
+  <a href="#phase6"><span class="num">06</span> 监控运维</a>
+</nav>
+
+<main>
+
+  <!-- ── OVERVIEW PIPELINE ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">OVERVIEW</span>
+      <h2 class="section-title">全流程概览</h2>
+      <div class="section-accent" style="background:var(--gold)"></div>
+    </div>
+    <div class="pipeline">
+      <div class="pipeline-stage">
+        <div class="ps-box">
+          <div class="ps-icon">🎯</div>
+          <div class="ps-name">定义目标</div>
+          <div class="ps-desc">任务明确、基线选型</div>
+        </div>
+      </div>
+      <div class="pipeline-stage">
+        <div class="ps-box">
+          <div class="ps-icon">🗂️</div>
+          <div class="ps-name">数据工程</div>
+          <div class="ps-desc">收集、清洗、格式化</div>
+        </div>
+      </div>
+      <div class="pipeline-stage">
+        <div class="ps-box">
+          <div class="ps-icon">⚙️</div>
+          <div class="ps-name">微调训练</div>
+          <div class="ps-desc">LoRA / QLoRA / Full</div>
+        </div>
+      </div>
+      <div class="pipeline-stage">
+        <div class="ps-box">
+          <div class="ps-icon">🔬</div>
+          <div class="ps-name">评估验证</div>
+          <div class="ps-desc">指标、人工、对比</div>
+        </div>
+      </div>
+      <div class="pipeline-stage">
+        <div class="ps-box">
+          <div class="ps-icon">🚀</div>
+          <div class="ps-name">部署上线</div>
+          <div class="ps-desc">容器化、API 服务</div>
+        </div>
+      </div>
+      <div class="pipeline-stage">
+        <div class="ps-box">
+          <div class="ps-icon">📊</div>
+          <div class="ps-name">监控运维</div>
+          <div class="ps-desc">日志、告警、迭代</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHASE 1 ── -->
+  <div class="section" id="phase1">
+    <div class="section-header">
+      <span class="section-num">01 · PHASE</span>
+      <h2 class="section-title">前期准备 — 环境 & 选型</h2>
+      <div class="section-accent" style="background:var(--red)"></div>
+    </div>
+
+    <div class="infobox infobox-gold">
+      <div class="infobox-label">核心问题</div>
+      在动手之前，必须回答三个问题：<strong>微调还是 RAG？用哪个基座模型？在哪里训练？</strong> 这三个决策直接决定后续所有资源投入。
+    </div>
+
+    <h3 style="font-family:'Noto Serif SC',serif; font-size:18px; margin:28px 0 16px; font-weight:600">是否真的需要微调？</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>场景</th><th>推荐方案</th><th>原因</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>需要注入外部最新知识</td><td>RAG</td><td>微调无法更新参数知识，成本高</td></tr>
+        <tr><td>需要特定风格 / 格式输出</td><td>✅ 微调</td><td>风格一致性靠参数记忆最稳定</td></tr>
+        <tr><td>领域专业词汇 / 推理能力</td><td>✅ 微调</td><td>让模型真正"学会"而不是检索</td></tr>
+        <tr><td>减少 System Prompt 长度</td><td>✅ 微调</td><td>将规则烧入权重，降低推理成本</td></tr>
+        <tr><td>多步骤工具调用流程</td><td>✅ 微调 + RAG</td><td>混合架构效果最佳</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-family:'Noto Serif SC',serif; font-size:18px; margin:28px 0 16px; font-weight:600">基座模型选型</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>模型</th><th>参数量</th><th>显存需求 (QLoRA)</th><th>适用场景</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Llama 3.1 8B</td><td>8B</td><td>~10GB</td><td>消费级 GPU，快速实验</td></tr>
+        <tr><td>Qwen2.5 7B</td><td>7B</td><td>~10GB</td><td>中文任务首选</td></tr>
+        <tr><td>Mistral 7B</td><td>7B</td><td>~10GB</td><td>英文代码 / 指令遵循</td></tr>
+        <tr><td>Llama 3.1 70B</td><td>70B</td><td>~48GB</td><td>高精度，多卡训练</td></tr>
+        <tr><td>Qwen2.5 72B</td><td>72B</td><td>~48GB</td><td>中文高质量，需 A100×2+</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>环境安装 · setup.sh</div>
+      <pre><span class="cm"># 创建隔离环境</span>
+conda create -n finetune python=3.11 -y
+conda activate finetune
+
+<span class="cm"># 核心依赖</span>
+pip install torch==2.3.0 torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install transformers==4.44.0 datasets peft trl accelerate bitsandbytes
+pip install wandb evaluate rouge_score sacrebleu
+
+<span class="cm"># 验证 GPU</span>
+python -c <span class="cs">"import torch; print(torch.cuda.get_device_name(0))"</span>
+nvidia-smi --query-gpu=name,memory.total --format=csv</pre>
+    </div>
+  </div>
+
+  <!-- ── PHASE 2 ── -->
+  <div class="section" id="phase2">
+    <div class="section-header">
+      <span class="section-num">02 · PHASE</span>
+      <h2 class="section-title">数据工程 — 质量决定上限</h2>
+      <div class="section-accent" style="background:var(--gold)"></div>
+    </div>
+
+    <div class="infobox infobox-warn">
+      <div class="infobox-label">⚠️ 最常见的失败原因</div>
+      80% 的微调失败来自数据质量问题，而非模型或超参数。<strong>宁可花更多时间在数据清洗上，也不要用脏数据反复训练。</strong>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-name">确定数据格式（Chat / Instruction / Completion）</div>
+          <div class="step-desc">微调格式需与基座模型的 chat template 一致。Llama 系列使用 <code>&lt;|begin_of_text|&gt;</code> 格式；Qwen 使用 <code>&lt;|im_start|&gt;</code>。格式错误会导致模型学到无效模式。</div>
+          <div class="step-tags"><span class="tag">chat-template</span><span class="tag">tokenization</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-name">数据收集 — 多源整合</div>
+          <div class="step-desc">优先使用真实用户数据；其次使用强模型（GPT-4o / Claude）生成高质量合成数据；对于中文任务可使用 BELLE、Chinese-LLaMA 等开源数据集作为起点。</div>
+          <div class="step-tags"><span class="tag">synthetic-data</span><span class="tag">augmentation</span><span class="tag">crawl</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-name">数据清洗 Pipeline</div>
+          <div class="step-desc">去重（MinHash/SimHash）→ 过滤低质量（长度、困惑度）→ PII 脱敏（姓名/手机/身份证）→ 格式规范化 → 人工抽检 2–5%。</div>
+          <div class="step-tags"><span class="tag">dedup</span><span class="tag">pii-removal</span><span class="tag">quality-filter</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-name">数据集拆分与统计</div>
+          <div class="step-desc">推荐比例：Train 90% / Val 8% / Test 2%。统计 token 分布、平均长度，确保无严重偏斜。验证集要覆盖所有子任务类型。</div>
+          <div class="step-tags"><span class="tag">train-val-test</span><span class="tag">statistics</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>数据格式示例 · dataset_format.py</div>
+      <pre><span class="cm"># Alpaca 格式（最通用）</span>
+<span class="ck">SAMPLE</span> = {
+    <span class="cs">"instruction"</span>: <span class="cs">"请将以下法律文本摘要化，保留核心条款。"</span>,
+    <span class="cs">"input"</span>:       <span class="cs">"第十七条 用人单位与劳动者..."</span>,
+    <span class="cs">"output"</span>:      <span class="cs">"本条款规定用人单位须在..."</span>
+}
+
+<span class="cm"># ShareGPT / Chat 格式</span>
+<span class="ck">CHAT_SAMPLE</span> = {
+    <span class="cs">"conversations"</span>: [
+        {<span class="cs">"from"</span>: <span class="cs">"human"</span>, <span class="cs">"value"</span>: <span class="cs">"解释量子纠缠的实际应用"</span>},
+        {<span class="cs">"from"</span>: <span class="cs">"gpt"</span>,   <span class="cs">"value"</span>: <span class="cs">"量子纠缠在实际中的应用包括..."</span>}
+    ]
+}
+
+<span class="cm"># 转换为 HuggingFace Dataset</span>
+<span class="ck">from</span> datasets <span class="ck">import</span> Dataset
+<span class="ck">import</span> json
+
+data = [json.loads(l) <span class="ck">for</span> l <span class="ck">in</span> open(<span class="cs">"train.jsonl"</span>)]
+ds   = Dataset.from_list(data)
+ds.push_to_hub(<span class="cs">"your-org/your-dataset"</span>)  <span class="cm"># 可选：推送到 HF Hub</span></pre>
+    </div>
+
+    <div class="infobox infobox-tip">
+      <div class="infobox-label">💡 数据量参考</div>
+      <strong>风格迁移</strong>：500–2000 条高质量样本通常足够。<br>
+      <strong>领域知识注入</strong>：5000–50000 条，越多越好。<br>
+      <strong>指令遵循</strong>：1000 条精心设计的多样化样本 &gt; 10000 条重复样本。
+    </div>
+  </div>
+
+  <!-- ── PHASE 3 ── -->
+  <div class="section" id="phase3">
+    <div class="section-header">
+      <span class="section-num">03 · PHASE</span>
+      <h2 class="section-title">微调训练 — LoRA / QLoRA 实战</h2>
+      <div class="section-accent" style="background:var(--green)"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="infobox infobox-info" style="margin:0">
+        <div class="infobox-label">LoRA</div>
+        <strong>Low-Rank Adaptation</strong>：仅训练低秩分解矩阵 A、B，参数量约为全量的 0.1–1%。适合显存充足（≥24GB）的 FP16 训练。
+      </div>
+      <div class="infobox infobox-info" style="margin:0">
+        <div class="infobox-label">QLoRA</div>
+        <strong>Quantized LoRA</strong>：基座模型 4-bit 量化（NF4）加载，LoRA 适配器 BF16 训练。单张 24GB 卡可微调 70B 模型。
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>QLoRA 完整训练脚本 · train_qlora.py</div>
+      <pre><span class="ck">from</span> transformers <span class="ck">import</span> AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+<span class="ck">from</span> peft          <span class="ck">import</span> LoraConfig, get_peft_model, TaskType
+<span class="ck">from</span> trl           <span class="ck">import</span> SFTTrainer, SFTConfig
+<span class="ck">from</span> datasets      <span class="ck">import</span> load_dataset
+<span class="ck">import</span> torch
+
+<span class="cm"># ── 1. 量化配置 ──────────────────────────────────</span>
+bnb_cfg = BitsAndBytesConfig(
+    load_in_4bit              = <span class="cv">True</span>,
+    bnb_4bit_compute_dtype    = torch.bfloat16,
+    bnb_4bit_quant_type       = <span class="cs">"nf4"</span>,
+    bnb_4bit_use_double_quant = <span class="cv">True</span>,
+)
+
+<span class="cm"># ── 2. 加载模型 & Tokenizer ──────────────────────</span>
+<span class="ck">MODEL_ID</span> = <span class="cs">"Qwen/Qwen2.5-7B-Instruct"</span>
+model = AutoModelForCausalLM.from_pretrained(
+    <span class="ck">MODEL_ID</span>, quantization_config=bnb_cfg, device_map=<span class="cs">"auto"</span>
+)
+tokenizer = AutoTokenizer.from_pretrained(<span class="ck">MODEL_ID</span>)
+
+<span class="cm"># ── 3. LoRA 配置 ─────────────────────────────────</span>
+lora_cfg = LoraConfig(
+    r              = <span class="cv">16</span>,         <span class="cm"># 秩，越大表达能力越强但参数更多</span>
+    lora_alpha     = <span class="cv">32</span>,         <span class="cm"># 缩放因子，通常 = 2×r</span>
+    target_modules = [<span class="cs">"q_proj"</span>, <span class="cs">"k_proj"</span>, <span class="cs">"v_proj"</span>, <span class="cs">"o_proj"</span>,
+                      <span class="cs">"gate_proj"</span>, <span class="cs">"up_proj"</span>, <span class="cs">"down_proj"</span>],
+    lora_dropout   = <span class="cv">0.05</span>,
+    task_type      = TaskType.CAUSAL_LM,
+)
+model = get_peft_model(model, lora_cfg)
+model.print_trainable_parameters()  <span class="cm"># 确认可训练参数比例</span>
+
+<span class="cm"># ── 4. 训练配置 ──────────────────────────────────</span>
+training_args = SFTConfig(
+    output_dir              = <span class="cs">"./output"</span>,
+    num_train_epochs        = <span class="cv">3</span>,
+    per_device_train_batch_size = <span class="cv">2</span>,
+    gradient_accumulation_steps = <span class="cv">8</span>,   <span class="cm"># 等效 batch_size=16</span>
+    learning_rate           = <span class="cv">2e-4</span>,
+    lr_scheduler_type       = <span class="cs">"cosine"</span>,
+    warmup_ratio            = <span class="cv">0.05</span>,
+    bf16                    = <span class="cv">True</span>,
+    logging_steps           = <span class="cv">10</span>,
+    save_strategy           = <span class="cs">"epoch"</span>,
+    eval_strategy           = <span class="cs">"epoch"</span>,
+    report_to               = <span class="cs">"wandb"</span>,
+    max_seq_length          = <span class="cv">2048</span>,
+)
+
+<span class="cm"># ── 5. 启动训练 ──────────────────────────────────</span>
+dataset = load_dataset(<span class="cs">"json"</span>, data_files={<span class="cs">"train"</span>: <span class="cs">"train.jsonl"</span>, <span class="cs">"validation"</span>: <span class="cs">"val.jsonl"</span>})
+trainer = SFTTrainer(model=model, args=training_args,
+                     train_dataset=dataset[<span class="cs">"train"</span>],
+                     eval_dataset=dataset[<span class="cs">"validation"</span>])
+trainer.train()
+
+<span class="cm"># ── 6. 合并保存 ──────────────────────────────────</span>
+merged = trainer.model.merge_and_unload()
+merged.save_pretrained(<span class="cs">"./merged_model"</span>)
+tokenizer.save_pretrained(<span class="cs">"./merged_model"</span>)</pre>
+    </div>
+
+    <h3 style="font-family:'Noto Serif SC',serif; font-size:18px; margin:28px 0 16px; font-weight:600">超参数调优指南</h3>
+    <table class="data-table">
+      <thead><tr><th>参数</th><th>推荐范围</th><th>调优方向</th></tr></thead>
+      <tbody>
+        <tr><td>learning_rate</td><td>1e-4 ~ 3e-4</td><td>loss 不下降 → 调大；震荡 → 调小</td></tr>
+        <tr><td>LoRA rank (r)</td><td>8 / 16 / 32</td><td>任务越复杂 → 越大；显存不足 → 调小</td></tr>
+        <tr><td>lora_alpha</td><td>通常 = 2×r</td><td>保持 alpha/r 比值稳定即可</td></tr>
+        <tr><td>batch size (等效)</td><td>16 ~ 128</td><td>小 batch 收敛慢但泛化好</td></tr>
+        <tr><td>num_epochs</td><td>1 ~ 5</td><td>val loss 上升即停止（早停）</td></tr>
+        <tr><td>max_seq_length</td><td>1024 ~ 4096</td><td>超出上限的样本会被截断</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── PHASE 4 ── -->
+  <div class="section" id="phase4">
+    <div class="section-header">
+      <span class="section-num">04 · PHASE</span>
+      <h2 class="section-title">评估验证 — 多维度质量检验</h2>
+      <div class="section-accent" style="background:var(--blue)"></div>
+    </div>
+
+    <div class="infobox infobox-tip">
+      <div class="infobox-label">💡 评估黄金法则</div>
+      自动指标（ROUGE/BLEU）只是参考，<strong>人工评估 + 模型评估</strong>（LLM-as-Judge）才是最终标准。始终在保留的 holdout 测试集上评估，绝不用训练集中的数据。
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-body">
+          <div class="step-name">自动指标评估</div>
+          <div class="step-desc">ROUGE-L（摘要/文本生成）、BLEU（翻译）、F1（信息抽取）、Perplexity（语言建模）。使用 HuggingFace evaluate 库快速计算，与 baseline 模型对比。</div>
+          <div class="step-tags"><span class="tag">rouge</span><span class="tag">bleu</span><span class="tag">perplexity</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-body">
+          <div class="step-name">LLM-as-Judge 评估</div>
+          <div class="step-desc">用 GPT-4o 或 Claude 作为裁判，对微调模型和原始模型输出进行 A/B 对比评分（1-10 分），覆盖：准确性、流畅性、遵循指令程度。成本低、可扩展。</div>
+          <div class="step-tags"><span class="tag">llm-judge</span><span class="tag">pairwise</span><span class="tag">preference</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">C</div>
+        <div class="step-body">
+          <div class="step-name">灾难性遗忘检测</div>
+          <div class="step-desc">微调后必须用通用基准（MMLU / C-Eval）检测模型是否严重退化。如果通用能力下降 &gt;5%，需要减小 LoRA rank 或加入通用数据混合训练。</div>
+          <div class="step-tags"><span class="tag">mmlu</span><span class="tag">c-eval</span><span class="tag">catastrophic-forgetting</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">D</div>
+        <div class="step-body">
+          <div class="step-name">安全性 & 边界测试</div>
+          <div class="step-desc">构造对抗性输入（越狱尝试、歧义指令、极端边界），确保微调未引入安全漏洞。建立 red-teaming 测试集，每次更新模型必须通过。</div>
+          <div class="step-tags"><span class="tag">red-team</span><span class="tag">safety</span><span class="tag">robustness</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>LLM-as-Judge 评估 · eval_judge.py</div>
+      <pre><span class="ck">import</span> anthropic, json
+
+client = anthropic.Anthropic()
+
+<span class="ck">JUDGE_PROMPT</span> = <span class="cs">"""
+你是一位严格的评估专家。请对以下两个回答进行对比评分（1-10分）。
+
+问题：{question}
+回答A（原始模型）：{answer_a}
+回答B（微调模型）：{answer_b}
+
+评估维度：准确性、专业性、格式规范性。
+请只输出 JSON：{{"winner": "A"或"B"或"tie", "score_a": 分数, "score_b": 分数, "reason": "简要原因"}}
+"""</span>
+
+<span class="ck">def</span> judge(question, answer_a, answer_b):
+    msg = client.messages.create(
+        model=<span class="cs">"claude-opus-4-5"</span>,
+        max_tokens=<span class="cv">512</span>,
+        messages=[{<span class="cs">"role"</span>: <span class="cs">"user"</span>,
+                   <span class="cs">"content"</span>: <span class="ck">JUDGE_PROMPT</span>.format(
+                       question=question, answer_a=answer_a, answer_b=answer_b)}]
+    )
+    <span class="ck">return</span> json.loads(msg.content[<span class="cv">0</span>].text)</pre>
+    </div>
+  </div>
+
+  <!-- ── PHASE 5 ── -->
+  <div class="section" id="phase5">
+    <div class="section-header">
+      <span class="section-num">05 · PHASE</span>
+      <h2 class="section-title">部署上线 — 生产级服务</h2>
+      <div class="section-accent" style="background:var(--red)"></div>
+    </div>
+
+    <h3 style="font-family:'Noto Serif SC',serif; font-size:18px; margin:0 0 16px; font-weight:600">部署方案选择</h3>
+    <table class="data-table">
+      <thead><tr><th>方案</th><th>工具</th><th>适合场景</th><th>优缺点</th></tr></thead>
+      <tbody>
+        <tr><td>本地 / 单机</td><td>Ollama, llama.cpp</td><td>开发测试、内网演示</td><td>简单快速；无扩展性</td></tr>
+        <tr><td>容器化服务</td><td>vLLM + Docker</td><td>团队共享、小规模生产</td><td>高吞吐；需要维护</td></tr>
+        <tr><td>云托管推理</td><td>RunPod, Modal, Together.ai</td><td>快速上线、无 GPU</td><td>按量计费；依赖第三方</td></tr>
+        <tr><td>Kubernetes</td><td>vLLM + K8s + HPA</td><td>大规模生产、自动扩缩</td><td>高可用；运维复杂</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>vLLM 部署 · Dockerfile + compose</div>
+      <pre><span class="cm"># Dockerfile</span>
+FROM vllm/vllm-openai:latest
+
+COPY ./merged_model /models/my-model
+ENV MODEL_NAME=my-model
+
+CMD [<span class="cs">"python"</span>, <span class="cs">"-m"</span>, <span class="cs">"vllm.entrypoints.openai.api_server"</span>,
+     <span class="cs">"--model"</span>, <span class="cs">"/models/my-model"</span>,
+     <span class="cs">"--tensor-parallel-size"</span>, <span class="cs">"1"</span>,
+     <span class="cs">"--max-model-len"</span>, <span class="cs">"4096"</span>,
+     <span class="cs">"--gpu-memory-utilization"</span>, <span class="cs">"0.90"</span>]
+
+<span class="cm">---
+# docker-compose.yml</span>
+services:
+  llm-api:
+    build: .
+    ports:   [<span class="cs">"8000:8000"</span>]
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+    volumes: [./models:/models:ro]
+    restart: unless-stopped</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>OpenAI-Compatible 调用 · client.py</div>
+      <pre><span class="ck">from</span> openai <span class="ck">import</span> OpenAI
+
+client = OpenAI(base_url=<span class="cs">"http://localhost:8000/v1"</span>, api_key=<span class="cs">"dummy"</span>)
+
+response = client.chat.completions.create(
+    model=<span class="cs">"my-model"</span>,
+    messages=[
+        {<span class="cs">"role"</span>: <span class="cs">"system"</span>, <span class="cs">"content"</span>: <span class="cs">"你是专业的法律助理。"</span>},
+        {<span class="cs">"role"</span>: <span class="cs">"user"</span>,   <span class="cs">"content"</span>: <span class="cs">"解释劳动合同第17条。"</span>},
+    ],
+    temperature=<span class="cv">0.3</span>,
+    max_tokens=<span class="cv">512</span>,
+    stream=<span class="cv">True</span>,      <span class="cm"># 流式输出，减少首字节延迟</span>
+)
+<span class="ck">for</span> chunk <span class="ck">in</span> response:
+    print(chunk.choices[<span class="cv">0</span>].delta.content, end=<span class="cs">""</span>, flush=<span class="cv">True</span>)</pre>
+    </div>
+
+    <div class="infobox infobox-tip">
+      <div class="infobox-label">性能优化要点</div>
+      <strong>量化推理</strong>：生产环境使用 AWQ 或 GPTQ 量化，吞吐量提升 2-4×。<br>
+      <strong>连续批处理</strong>：vLLM 的 PagedAttention 默认支持，无需额外配置。<br>
+      <strong>KV Cache 共享</strong>：相同 System Prompt 的请求复用前缀缓存，首 token 延迟降低 50%+。
+    </div>
+  </div>
+
+  <!-- ── PHASE 6 ── -->
+  <div class="section" id="phase6">
+    <div class="section-header">
+      <span class="section-num">06 · PHASE</span>
+      <h2 class="section-title">监控运维 — 持续迭代</h2>
+      <div class="section-accent" style="background:var(--gray)"></div>
+    </div>
+
+    <h3 style="font-family:'Noto Serif SC',serif; font-size:18px; margin:0 0 16px; font-weight:600">上线后必做检查清单</h3>
+    <ul class="checklist" id="launch-checklist">
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>配置请求限流（Rate Limiting），防止 GPU OOM</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>记录完整请求/响应日志（含 latency、token 数）</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>设置 TTFT（首 token 时间）告警阈值，超过 2s 触发</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>部署内容过滤器，拦截有害输出</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>建立用户反馈收集机制（👍/👎 + 文字说明）</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>设置模型漂移检测，定期回归测试集评估</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>制定数据飞轮计划：线上反馈数据 → 增量微调</span></li>
+      <li onclick="toggleCheck(this)"><div class="chk">✓</div><span>灾备方案：Fallback 到原始模型或云 API</span></li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-block-header"><div class="dot"></div>Prometheus 监控指标 · metrics.py</div>
+      <pre><span class="ck">from</span> prometheus_client <span class="ck">import</span> Counter, Histogram, Gauge
+
+<span class="cm"># 核心监控指标</span>
+REQUEST_COUNT   = Counter(<span class="cs">"llm_requests_total"</span>, <span class="cs">"Total API requests"</span>, [<span class="cs">"status"</span>])
+TOKEN_COUNT     = Counter(<span class="cs">"llm_tokens_total"</span>,   <span class="cs">"Total tokens"</span>,      [<span class="cs">"type"</span>])
+LATENCY_TTFT    = Histogram(<span class="cs">"llm_ttft_seconds"</span>,  <span class="cs">"Time to first token"</span>)
+LATENCY_TOTAL   = Histogram(<span class="cs">"llm_e2e_seconds"</span>,   <span class="cs">"End-to-end latency"</span>)
+GPU_UTIL        = Gauge(<span class="cs">"llm_gpu_utilization"</span>, <span class="cs">"GPU utilization %"</span>)
+
+<span class="cm"># 在每次请求中埋点</span>
+<span class="ck">def</span> track_request(func):
+    <span class="ck">async def</span> wrapper(*args, **kwargs):
+        <span class="ck">with</span> LATENCY_TOTAL.time():
+            result = <span class="ck">await</span> func(*args, **kwargs)
+        REQUEST_COUNT.labels(status=<span class="cs">"success"</span>).inc()
+        <span class="ck">return</span> result
+    <span class="ck">return</span> wrapper</pre>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="fl">微调 · 实践 · 部署 完整行动指南 / Complete Action Guide</div>
+  <div class="fr">FINE-TUNE → PRACTICE → DEPLOY</div>
+</footer>
+
+<script>
+  function toggleCheck(li) {
+    li.classList.toggle('done');
+  }
+</script>
+</body>
+</html>
